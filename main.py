@@ -317,7 +317,7 @@ def run_web_server():
     server = HTTPServer(('', port), DummyHandler)
     print(f"Render web server başlatıldı. Port: {port}")
     server.serve_forever()
-
+    
 # ===== Başlatıcı =====
 async def main():
     if bot and dp: # Bot ve dispatcher başarıyla oluşturulduysa
@@ -328,6 +328,8 @@ async def main():
 
 # Use dp.run_polling instead of asyncio.run(main())
 if __name__ == "__main__":
+        # HTTP sunucusunu başlat
+    threading.Thread(target=run_web_server).start()
     # Bot ve dispatcher başarıyla oluşturulduysa çalıştır
     if dp:
         print("✅ Bot çalışıyor. /ai komutunu deneyebilirsin.")
@@ -335,6 +337,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
