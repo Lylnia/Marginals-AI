@@ -1,5 +1,3 @@
-!pip install --quiet aiogram nest_asyncio google-generativeai
-
 import time
 import nest_asyncio
 import asyncio
@@ -320,4 +318,5 @@ if __name__ == "__main__":
         print("✅ Bot çalışıyor. /ai komutunu deneyebilirsin.")
         dp.run_polling(bot)
     else:
+
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
