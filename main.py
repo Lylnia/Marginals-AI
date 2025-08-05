@@ -288,7 +288,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         except Exception as e:
             print(f"Exception caught: {e}") # Debug print
             # Hata durumunda da anahtar değiştirme mantığı eklenebilir (özellikle 429 Too Many Requests hatası için)
-            global current_key_index, api_key_usage # Global değişkenleri tekrar belirtmeye gerek yok
+            current_key_index, api_key_usage # Global değişkenleri tekrar belirtmeye gerek yok
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
                 current_key_index = 0 # Başa dön
@@ -320,3 +320,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
