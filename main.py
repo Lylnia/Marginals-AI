@@ -302,6 +302,21 @@ if dp: # dp None değilse yani bot başlatıldıysa
             # Hata durumunda da kullanım bilgilerini kaydetmek isteyebilirsin
             save_api_usage()
 
+# Port
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class DummyHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'Bot aktif.')
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(('', port), DummyHandler)
+    print(f"Render web server başlatıldı. Port: {port}")
+    server.serve_forever()
 
 # ===== Başlatıcı =====
 async def main():
@@ -320,4 +335,6 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
+
 
