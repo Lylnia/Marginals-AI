@@ -18,7 +18,7 @@ nest_asyncio.apply()
 # ===== Ayarlar =====
 # Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-MODEL = "gemini-2.0-flash-exp" # Google AI Studio Model
+MODEL = "gemini-2.5-pro" # Google AI Studio Model
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 
@@ -337,6 +337,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
