@@ -134,7 +134,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
            return
 
-    global start_time, active_api_index, message_count
+    start_time, active_api_index, message_count
 
     uptime_seconds = int(time.time() - start_time)
     hours, remainder = divmod(uptime_seconds, 3600)
@@ -376,6 +376,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
