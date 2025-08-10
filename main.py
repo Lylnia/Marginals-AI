@@ -128,13 +128,14 @@ if dp: # dp None değilse yani bot başlatıldıysa
             "🔄 /reborn yazarak geçmişi sıfırlayabilirsin."
         )
 
-    # ===== Status =====
-    @dp.message(Command("status"))
-    async def status_handler(message: Message):
-        if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-           return
+# ===== Status =====
+@dp.message(Command("status"))
+async def status_handler(message: Message):
+    if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+        return
 
-    start_time, active_api_index, message_count
+    # Eğer fonksiyon içinde global değişkenleri kullanacaksan global bildirimi yap
+    global start_time, active_api_index, message_count
 
     uptime_seconds = int(time.time() - start_time)
     hours, remainder = divmod(uptime_seconds, 3600)
@@ -149,7 +150,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
     )
 
     await message.reply(status_text)
-       
+
     # ===== /reborn =====
     @dp.message(Command("reborn"))
     async def reset_history(message: Message):
@@ -376,6 +377,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
