@@ -129,10 +129,10 @@ if dp: # dp None değilse yani bot başlatıldıysa
         )
 
     # ===== Status =====
-   @dp.message(Command("status"))
-   async def status_handler(message: Message):
-    if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-        return  # Botun başladığı zamandan önceki mesajlara cevap verme
+    @dp.message(Command("status"))
+    async def status_handler(message: Message):
+        if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+           return
 
     global start_time, active_api_index, message_count
 
@@ -376,6 +376,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
