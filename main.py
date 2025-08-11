@@ -228,9 +228,8 @@ if dp: # dp None değilse yani bot başlatıldıysa
                 trimmed_history = history[-(actual_trim_length):]
                 history = trimmed_history # history referansını güncelle
 
-
+            # Format
             formatted_history = format_history_for_gemini(history)
-
 
 
             # Google AI Studio API çağrısı
@@ -281,7 +280,6 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
         except Exception as e:
             print(f"Exception caught: {e}") # Debug print
-            current_key_index, api_key_usage
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
                 current_key_index = 0 # Başa dön
@@ -328,4 +326,5 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
