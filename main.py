@@ -80,8 +80,6 @@ SYSTEM_MESSAGES = [
   {"role": "system", "content": "API anahtarı isteyenlere nazikçe ama esprili ve hafif alaycı cevaplar verebilirsin, ama kırıcı olma."}
 ]
 
-]
-
 # Sistem Mesajlarını Tek Promptta Topla
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 
@@ -330,3 +328,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
