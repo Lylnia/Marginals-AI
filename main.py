@@ -9,12 +9,14 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
+# from google.colab import userdata # Colab dışına taşındığı için kaldırıldı
 import pickle
 import os
 
 nest_asyncio.apply()
 
 # ===== Ayarlar =====
+# Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 MODEL = "gemini-2.5-flash" # Google AI Studio Model
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
@@ -80,7 +82,7 @@ SYSTEM_MESSAGES = [
   {"role": "system", "content": "API anahtarı isteyenlere nazikçe ama esprili ve hafif alaycı cevaplar verebilirsin, ama kırıcı olma."}
 ]
 
-# Sistem Mesajlarını Tek Promptta Topla
+# Combine system messages into a single string
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 
 
@@ -88,9 +90,11 @@ combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 private_histories = {}       # user_id: [history]
 group_histories = {}         # chat_id: {user_id: [history]}
 
+# Helper function to format history for Gemini API
 def format_history_for_gemini(history):
     formatted_history = []
     for message in history:
+        # Ensure the role is either 'user' or 'model' for the Gemini API
         role = 'model' if message['role'] == 'assistant' else message['role']
         formatted_history.append({
             "role": role,
@@ -163,6 +167,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         try:
             response = requests.post(DRAW_API_URL, headers=headers, json=payload)
             if response.status_code == 200:
+                # Görsel geldiyse dosyayı byte olarak kaydet
                 image_bytes = response.content
                 from aiogram.types import FSInputFile
                 import tempfile
@@ -221,15 +226,18 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
             # Geçmiş 15 girdiyi aşarsa kırp (sistem mesajları hariç tutularak)
             # Sistem mesajları her zaman listenin başında olacağı için kırpma sadece kullanıcı/bot mesajları için geçerli olacak
-            max_history_length = 35 # Sistem mesajları + 15 kullanıcı/bot mesajı (örneğin 2 sistem mesajı varsa 13 kullanıcı/bot)
+            max_history_length = 15 # Sistem mesajları + 15 kullanıcı/bot mesajı (örneğin 2 sistem mesajı varsa 13 kullanıcı/bot)
             # Gerçek kırpma uzunluğu = max_history_length - len(SYSTEM_MESSAGES)
             actual_trim_length = max_history_length - len(SYSTEM_MESSAGES)
             if len(history) > actual_trim_length:
+                 # En son `actual_trim_length` kadar kullanıcı/bot mesajını al
                 trimmed_history = history[-(actual_trim_length):]
                 history = trimmed_history # history referansını güncelle
 
-            # Format
+
+            # Format history for Gemini API
             formatted_history = format_history_for_gemini(history)
+
 
 
             # Google AI Studio API çağrısı
@@ -280,6 +288,8 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
         except Exception as e:
             print(f"Exception caught: {e}") # Debug print
+            # Hata durumunda da anahtar değiştirme mantığı eklenebilir (özellikle 429 Too Many Requests hatası için)
+            current_key_index, api_key_usage # Global değişkenleri tekrar belirtmeye gerek yok
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
                 current_key_index = 0 # Başa dön
@@ -317,7 +327,9 @@ async def main():
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
 
+# Use dp.run_polling instead of asyncio.run(main())
 if __name__ == "__main__":
+        # HTTP sunucusunu başlat
     threading.Thread(target=run_web_server).start()
     # Bot ve dispatcher başarıyla oluşturulduysa çalıştır
     if dp:
@@ -326,5 +338,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
