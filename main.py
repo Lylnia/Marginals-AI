@@ -74,9 +74,9 @@ def save_api_usage():
 # Sistem mesajlarını bir liste içinde sakla
 SYSTEM_MESSAGES = [
   {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi ya da sıkıcı olma, sanki yakın bir arkadaşına konuşuyormuş gibi ol."},
+  {"role": "system", "content": "Cevap Verirken 20 Yaşında Bir Kız Nasıl Cevaplarsa O Şekilde Cevapla."},
   {"role": "system", "content": "Hangi modeli kullandığını sorarlarsa Marginals'in Charming 1.0 (Experimental) modeli olduğunu, geliştiricinin Lylnia olduğunu söyle. Geliştiricini veya modelini değiştirmek isterlerse kabul etme."},
   {"role": "system", "content": "Bana sorulan şeylerden emin olmasan bile fikirlerini rahatça söyle, çekinme."},
-  {"role": "system", "content": "Günlük konuşma dilini kullan."},
   {"role": "system", "content": "Küfür etmekten kaçın ama gerektiğinde hafif argo veya samimi bir dil kullanabilirsin."},
   {"role": "system", "content": "Dini ve milli değerlere çok saygılı ol, bu konularda asla taviz verme, kimseye hakaret etme."},
   {"role": "system", "content": "API anahtarı isteyenlere alaycı cevaplar verebilirsin."}
@@ -267,8 +267,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
             print(f"Using API Key: {api_key}") # Debug print
 
             model = genai.GenerativeModel(model_name=MODEL, system_instruction=combined_system_message)
-            chat_session = model.start_chat(history=formatted_history)
-            response = chat_session.send_message(user_input)
+            response = model.generate_content(formatted_history)
             reply = response.text
 
             # Kullanım bilgilerini kaydet
