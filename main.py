@@ -359,7 +359,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
             else:
                 private_histories[user_id] = history
 
-            await message.reply(reply, parse_mode=ParseMode.MARKDOWN_V2)
+            await message.reply(reply, parse_mode=ParseMode.MARKDOWN)
 
         except Exception as e:
             print(f"Exception caught: {e}") # Debug print
@@ -413,6 +413,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
