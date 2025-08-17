@@ -367,7 +367,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
                  api_key = GOOGLE_API_KEYS[current_key_index]
                  genai.configure(api_key=api_key)
                  api_key_usage[api_key] = 0 # Yeni anahtarın sayacını sıfırla
-                 await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene.")
+                 await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene. \n\n{e}")
 
             # Hata durumunda da kullanım bilgilerini kaydetmek isteyebilirsin
             save_api_usage()
@@ -407,6 +407,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
