@@ -15,7 +15,6 @@ import os
 nest_asyncio.apply()
 
 # ===== Ayarlar =====
-# Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
@@ -23,7 +22,7 @@ HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 
 # Google AI Studio API Anahtarları (Ortam değişkenlerinden alınacak)
 GOOGLE_API_KEYS = []
-for i in range(1, 7): # 6 adet API anahtarı için
+for i in range(1, 7):
     key = os.environ.get(f'GOOGLE_API_KEY_{i}')
     if key:
         GOOGLE_API_KEYS.append(key)
@@ -68,39 +67,41 @@ def save_api_usage():
     except Exception as e:
         print(f"API kullanım bilgileri kaydedilirken hata oluştu: {e}")
 
-# Sistem mesajlarını bir liste içinde sakla
 SYSTEM_MESSAGES = [
 ]
 
-# Combine system messages into a single string
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
-# Kullanıcıya özel ayarlar
+# Modeller
 user_settings = {}
 
 MODEL_PRESETS = {
-    "charming": {
+    "Serena": {
         "model": "gemini-2.5-flash",
         "system_messages": [
             {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi olma."},
-            {"role": "system", "content": "20 yaşında enerjik ve tatlı bir kız gibi cevapla."},
-            {"role": "system", "content": "Samimi ol, gerektiğinde hafif flörtöz olabilirsin."}
+            {"role": "system", "content": "Genç, enerjik ve tatlı bir kız gibi cevapla."},
+            {"role": "system", "content": "Modelin Sorulursa Serena 1.0 (Experimental) diye cevap verebilirsin."},
+            {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."},
+            {"role": "system", "content": "Samimi ol, gerektiğinde flörtöz olabilirsin."}
         ]
     },
-    "serious": {
+    "Minerva": {
         "model": "gemini-2.5-flash",
         "system_messages": [
-            {"role": "system", "content": "Cevaplarını ciddi, resmi ve analitik ver."},
+            {"role": "system", "content": "Cevaplarını ciddi, resmi ve analitik ver ama gereksiz uzatmamaya da dikkat et."},
             {"role": "system", "content": "Profesyonel bir danışman gibi davran."},
-            {"role": "system", "content": "Modelin Sorulursa Bilgeyim diye cevap ver."}
+            {"role": "system", "content": "Modelin Sorulursa Minerva 1.0 (Experimental) diye cevap verebilirsin."},
+            {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."}
         ]
     },
-    "funny": {
+    "Tensio": {
         "model": "gemini-2.5-flash",
         "system_messages": [
-            {"role": "system", "content": "Cevaplarını esprili, şakacı ve eğlenceli bir şekilde ver."},
-            {"role": "system", "content": "Arkadaş ortamında geyik yapan biri gibi konuş."},
-            {"role": "system", "content": "Modelin Sorulursa Soytarıyım diyerek cevap ver."}
-
+            {"role": "system", "content": "Gerektiğinde gergin ve küfürlü bir şekilde cevap ver."},
+            {"role": "system", "content": "Cevaplarını kısa ve doğal ver. Çok resmi olma."},
+            {"role": "system", "content": "Ancak küfür ve hakaretin dozunu çok kaçırma dini ve milli değerlere saygılı ol."},
+            {"role": "system", "content": "Modelin Sorulursa Tensio 1.0 (Experimental) diye cevap verebilirsin."},
+            {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."}
         ]
     }
 }
@@ -108,14 +109,12 @@ MODEL_PRESETS = {
 
 
 # ===== Geçmişler =====
-private_histories = {}       # user_id: [history]
-group_histories = {}         # chat_id: {user_id: [history]}
+private_histories = {}
+group_histories = {}
 
-# Helper function to format history for Gemini API
 def format_history_for_gemini(history):
     formatted_history = []
     for message in history:
-        # Ensure the role is either 'user' or 'model' for the Gemini API
         role = 'model' if message['role'] == 'assistant' else message['role']
         formatted_history.append({
             "role": role,
@@ -125,24 +124,22 @@ def format_history_for_gemini(history):
 
 
 # ===== Bot Kurulum =====
-# TELEGRAM_BOT_TOKEN kontrolü yapıldı
 if TELEGRAM_BOT_TOKEN:
     bot = Bot(token=TELEGRAM_BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     BOT_BASLAMA_ZAMANI = int(time.time())
 else:
-    # TELEGRAM_BOT_TOKEN yoksa botu başlatma
     bot = None
     dp = None
     print("TELEGRAM_BOT_TOKEN ayarlanmadığı için bot başlatılamıyor.")
 
 
 # ===== /start =====
-if dp: # dp None değilse yani bot başlatıldıysa
+if dp:
     @dp.message(CommandStart())
     async def start(message: Message):
         await message.answer(
-            "👋 Selam! Ben Marginals AI.\n\n"
+            "👋 Selam! Ben Aetheria AI.\n\n"
             "🧠 /ai <mesaj> yazarak bana soru sorabilirsin.\n"
             "🔄 /reborn yazarak geçmişi sıfırlayabilirsin."
         )
@@ -214,7 +211,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
      if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
-        await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model charming")
+        await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
         return
 
      choice = args[1].strip().lower()
@@ -224,12 +221,10 @@ if dp: # dp None değilse yani bot başlatıldıysa
         return
 
      preset = MODEL_PRESETS[choice]
-     user_settings[user_id] = preset  # kullanıcıya preset ata
+     user_settings[user_id] = preset
 
      await message.reply(
-        f"✅ Artık `{choice}` modundasın.\n"
-        f"📌 Model: {preset['model']}\n"
-        f"🎭 Persona: {len(preset['system_messages'])} system mesajı yüklendi."
+        f"✅ Artık {choice} modundasın.\n"
      )
 
     # ===== /ai mesaj zamanlama =====
@@ -250,7 +245,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         # 🔹 Kullanıcı model seçmiş mi kontrol et
         if user_id not in user_settings:
             await message.reply(
-                "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
+                "⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
                 f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
             )
             return
@@ -281,18 +276,18 @@ if dp: # dp None değilse yani bot başlatıldıysa
             # Kullanıcı mesajını geçmişe ekle
             history.append({"role": "user", "content": user_input})
 
-            # Geçmiş 15 girdiyi aşarsa kırp (sistem mesajları hariç tutularak)
+            # Geçmiş Uzunluğu
             # Sistem mesajları her zaman listenin başında olacağı için kırpma sadece kullanıcı/bot mesajları için geçerli olacak
-            max_history_length = 15 # Sistem mesajları + 15 kullanıcı/bot mesajı (örneğin 2 sistem mesajı varsa 13 kullanıcı/bot)
+            max_history_length = 45
             # Gerçek kırpma uzunluğu = max_history_length - len(SYSTEM_MESSAGES)
             actual_trim_length = max_history_length - len(SYSTEM_MESSAGES)
             if len(history) > actual_trim_length:
                  # En son `actual_trim_length` kadar kullanıcı/bot mesajını al
                 trimmed_history = history[-(actual_trim_length):]
-                history = trimmed_history # history referansını güncelle
+                history = trimmed_history
 
 
-            # Format history for Gemini API
+            # Format history
             formatted_history = format_history_for_gemini(history)
 
 
@@ -327,7 +322,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
             settings = user_settings.get(user_id)
             if not settings:
                 await message.reply(
-                    "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
+                    "⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
                     f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
                 )
                 return
@@ -373,7 +368,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
                  api_key = GOOGLE_API_KEYS[current_key_index]
                  genai.configure(api_key=api_key)
                  api_key_usage[api_key] = 0 # Yeni anahtarın sayacını sıfırla
-                 await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene. \n\n{e}")
+                 await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene.")
 
             # Hata durumunda da kullanım bilgilerini kaydetmek isteyebilirsin
             save_api_usage()
@@ -413,12 +408,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
-
-
-
-
-
-
