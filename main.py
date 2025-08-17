@@ -326,24 +326,24 @@ if dp: # dp None değilse yani bot başlatıldıysa
             print(f"Using API Key: {api_key}") # Debug print
 
 
-# Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
-settings = user_settings.get(
-    user_id,
-    {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
-)
+        # Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
+        settings = user_settings.get(
+            user_id,
+            {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
+        )
 
-# system_messages içeriğini birleştir
-combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
+        # system_messages içeriğini birleştir
+        combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
 
-# Modeli hazırla
-model = genai.GenerativeModel(
-    model_name=settings["model"],
-    system_instruction=combined_system_message
-)
+        # Modeli hazırla
+        model = genai.GenerativeModel(
+            model_name=settings["model"],
+            system_instruction=combined_system_message
+        )
 
-# Yanıt al
-response = model.generate_content(formatted_history)
-reply = response.text
+        # Yanıt al
+        response = model.generate_content(formatted_history)
+        reply = response.text
 
             # Kullanım bilgilerini kaydet
             save_api_usage()
@@ -412,4 +412,5 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
