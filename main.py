@@ -322,11 +322,11 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
             settings = user_settings.get(user_id)
             if not settings:
-            await message.reply(
-        "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
-        f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
-    )
-    return
+                await message.reply(
+                    "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
+                    f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
+                )
+                return
 
 
             # system_messages içeriğini birleştir
@@ -409,5 +409,6 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
