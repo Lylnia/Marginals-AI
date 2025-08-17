@@ -68,8 +68,6 @@ def save_api_usage():
     except Exception as e:
         print(f"API kullanım bilgileri kaydedilirken hata oluştu: {e}")
 
-# Combine system messages into a single string
-combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 # Kullanıcıya özel ayarlar
 user_settings = {}
 
@@ -409,6 +407,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
