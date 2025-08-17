@@ -9,23 +9,21 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
-# from google.colab import userdata # Colab dışına taşındığı için kaldırıldı
 import pickle
 import os
 
 nest_asyncio.apply()
 
 # ===== Ayarlar =====
-# Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-MODEL = "gemini-2.5-flash" # Google AI Studio Model
+MODEL = "gemini-2.5-flash"
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 
 
 # Google AI Studio API Anahtarları (Ortam değişkenlerinden alınacak)
 GOOGLE_API_KEYS = []
-for i in range(1, 7): # 6 adet API anahtarı için
+for i in range(1, 7):
     key = os.environ.get(f'GOOGLE_API_KEY_{i}')
     if key:
         GOOGLE_API_KEYS.append(key)
@@ -59,7 +57,7 @@ if os.path.exists(API_USAGE_FILE):
         print(f"API kullanım bilgileri yüklenirken hata oluştu: {e}")
         api_key_usage = {key: 0 for key in GOOGLE_API_KEYS}
 else:
-    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS} # Hata düzeltildi: GOGLE_API_KEYS -> GOOGLE_API_KEYS
+    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS} 
 
 
 # Kullanım bilgilerini dosyaya kaydetme fonksiyonu
@@ -85,7 +83,7 @@ SYSTEM_MESSAGES = [
 # Combine system messages into a single string
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 # Kullanıcıya özel ayarlar
-user_settings = {}  
+user_settings = {}
 
 MODEL_PRESETS = {
     "charming": {
@@ -110,7 +108,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Cevaplarını esprili, şakacı ve eğlenceli bir şekilde ver."},
             {"role": "system", "content": "Arkadaş ortamında geyik yapan biri gibi konuş."},
             {"role": "system", "content": "Modelin Sorulursa Soytarıyım diyerek cevap ver."}
-            
+
         ]
     }
 }
@@ -256,7 +254,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         chat_id = message.chat.id
         user_id = message.from_user.id
 
-        
+
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
             if not message.text.lower().startswith("/ai"):
@@ -326,24 +324,24 @@ if dp: # dp None değilse yani bot başlatıldıysa
             print(f"Using API Key: {api_key}") # Debug print
 
 
-        # Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
-        settings = user_settings.get(
-            user_id,
-            {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
-        )
+            # Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
+            settings = user_settings.get(
+                user_id,
+                {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
+            )
 
-        # system_messages içeriğini birleştir
-        combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
+            # system_messages içeriğini birleştir
+            combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
 
-        # Modeli hazırla
-        model = genai.GenerativeModel(
-            model_name=settings["model"],
-            system_instruction=combined_system_message
-        )
+            # Modeli hazırla
+            model = genai.GenerativeModel(
+                model_name=settings["model"],
+                system_instruction=combined_system_message
+            )
 
-        # Yanıt al
-        response = model.generate_content(formatted_history)
-        reply = response.text
+            # Yanıt al
+            response = model.generate_content(formatted_history)
+            reply = response.text
 
             # Kullanım bilgilerini kaydet
             save_api_usage()
@@ -392,7 +390,7 @@ def run_web_server():
     server = HTTPServer(('', port), DummyHandler)
     print(f"Render web server başlatıldı. Port: {port}")
     server.serve_forever()
-    
+
 # ===== Başlatıcı =====
 async def main():
     if bot and dp: # Bot ve dispatcher başarıyla oluşturulduysa
@@ -412,5 +410,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
