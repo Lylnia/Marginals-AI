@@ -75,7 +75,7 @@ combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 user_settings = {}
 
 MODEL_PRESETS = {
-    "Serena": {
+    "serena": {
         "model": "gemini-2.5-flash",
         "system_messages": [
             {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi olma."},
@@ -85,7 +85,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Samimi ol, gerektiğinde flörtöz olabilirsin."}
         ]
     },
-    "Minerva": {
+    "minerva": {
         "model": "gemini-2.5-flash",
         "system_messages": [
             {"role": "system", "content": "Cevaplarını ciddi, resmi ve analitik ver ama gereksiz uzatmamaya da dikkat et."},
@@ -94,7 +94,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."}
         ]
     },
-    "Tensio": {
+    "tensio": {
         "model": "gemini-2.5-flash",
         "system_messages": [
             {"role": "system", "content": "Gerektiğinde gergin ve küfürlü bir şekilde cevap ver."},
@@ -408,3 +408,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
