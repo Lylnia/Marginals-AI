@@ -9,21 +9,23 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
+# from google.colab import userdata # Colab dışına taşındığı için kaldırıldı
 import pickle
 import os
 
 nest_asyncio.apply()
 
 # ===== Ayarlar =====
+# Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-2.5-flash" # Google AI Studio Model
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 
 
 # Google AI Studio API Anahtarları (Ortam değişkenlerinden alınacak)
 GOOGLE_API_KEYS = []
-for i in range(1, 7):
+for i in range(1, 7): # 6 adet API anahtarı için
     key = os.environ.get(f'GOOGLE_API_KEY_{i}')
     if key:
         GOOGLE_API_KEYS.append(key)
@@ -57,7 +59,7 @@ if os.path.exists(API_USAGE_FILE):
         print(f"API kullanım bilgileri yüklenirken hata oluştu: {e}")
         api_key_usage = {key: 0 for key in GOOGLE_API_KEYS}
 else:
-    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS} 
+    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS} # Hata düzeltildi: GOGLE_API_KEYS -> GOOGLE_API_KEYS
 
 
 # Kullanım bilgilerini dosyaya kaydetme fonksiyonu
@@ -220,25 +222,25 @@ if dp: # dp None değilse yani bot başlatıldıysa
      user_id = message.from_user.id
      args = message.text.split(maxsplit=1)
 
-    if len(args) < 2:
+     if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model charming")
         return
 
-    choice = args[1].strip().lower()
-    if choice not in MODEL_PRESETS:
+     choice = args[1].strip().lower()
+     if choice not in MODEL_PRESETS:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
         return
 
-    preset = MODEL_PRESETS[choice]
-    user_settings[user_id] = preset  # kullanıcıya preset ata
+     preset = MODEL_PRESETS[choice]
+     user_settings[user_id] = preset  # kullanıcıya preset ata
 
-    await message.reply(
+     await message.reply(
         f"✅ Artık `{choice}` modundasın.\n"
         f"📌 Model: {preset['model']}\n"
         f"🎭 Persona: {len(preset['system_messages'])} system mesajı yüklendi."
-    )
+     )
 
     # ===== /ai mesaj zamanlama =====
     @dp.message()
