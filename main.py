@@ -218,9 +218,9 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
     # ===== Model Komutu =====
     @dp.message(Command("model"))
-async def change_model(message: Message):
-    user_id = message.from_user.id
-    args = message.text.split(maxsplit=1)
+    async def change_model(message: Message):
+     user_id = message.from_user.id
+     args = message.text.split(maxsplit=1)
 
     if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
@@ -412,3 +412,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
