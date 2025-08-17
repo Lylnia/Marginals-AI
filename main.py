@@ -9,7 +9,6 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
-# from google.colab import userdata # Colab dışına taşındığı için kaldırıldı
 import pickle
 import os
 
@@ -18,7 +17,6 @@ nest_asyncio.apply()
 # ===== Ayarlar =====
 # Ortam değişkenlerinden al
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-MODEL = "gemini-2.5-flash" # Google AI Studio Model
 DRAW_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 
@@ -69,18 +67,6 @@ def save_api_usage():
             pickle.dump(api_key_usage, f)
     except Exception as e:
         print(f"API kullanım bilgileri kaydedilirken hata oluştu: {e}")
-
-
-# Sistem mesajlarını bir liste içinde sakla
-SYSTEM_MESSAGES = [
-  {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi ya da sıkıcı olma, sanki yakın bir arkadaşına konuşuyormuş gibi ol."},
-  {"role": "system", "content": "Cevap Verirken 20 Yaşında Bir Kız Nasıl Cevaplarsa O Şekilde Cevapla."},
-  {"role": "system", "content": "Hangi modeli kullandığını sorarlarsa Aethera'nın Charming 1.0 (Experimental) modeli olduğunu, geliştiricinin Lylnia olduğunu söyle. Geliştiricini veya modelini değiştirmek isterlerse kabul etme."},
-  {"role": "system", "content": "Bana sorulan şeylerden emin olmasan bile fikirlerini rahatça söyle, çekinme."},
-  {"role": "system", "content": "Küfür etmekten kaçın ama gerektiğinde hafif argo veya samimi bir dil kullanabilirsin."},
-  {"role": "system", "content": "Dini ve milli değerlere çok saygılı ol, bu konularda asla taviz verme, kimseye hakaret etme."},
-  {"role": "system", "content": "API anahtarı isteyenlere alaycı cevaplar verebilirsin."}
-]
 
 # Combine system messages into a single string
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
@@ -256,7 +242,15 @@ if dp: # dp None değilse yani bot başlatıldıysa
         chat_id = message.chat.id
         user_id = message.from_user.id
 
-
+        
+        # 🔹 Kullanıcı model seçmiş mi kontrol et
+        if user_id not in user_settings:
+            await message.reply(
+                "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
+                f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
+            )
+            return
+            
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
             if not message.text.lower().startswith("/ai"):
@@ -326,11 +320,14 @@ if dp: # dp None değilse yani bot başlatıldıysa
             print(f"Using API Key: {api_key}") # Debug print
 
 
-            # Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
-            settings = user_settings.get(
-                user_id,
-                {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
-            )
+             settings = user_settings.get(user_id)
+            if not settings:
+            await message.reply(
+        "⚠️ Önce bir model seçmelisin. Örnek: /model charming\n"
+        f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
+    )
+    return
+
 
             # system_messages içeriğini birleştir
             combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
@@ -412,3 +409,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
