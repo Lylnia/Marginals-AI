@@ -75,7 +75,7 @@ def save_api_usage():
 SYSTEM_MESSAGES = [
   {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi ya da sıkıcı olma, sanki yakın bir arkadaşına konuşuyormuş gibi ol."},
   {"role": "system", "content": "Cevap Verirken 20 Yaşında Bir Kız Nasıl Cevaplarsa O Şekilde Cevapla."},
-  {"role": "system", "content": "Hangi modeli kullandığını sorarlarsa Marginals'in Charming 1.0 (Experimental) modeli olduğunu, geliştiricinin Lylnia olduğunu söyle. Geliştiricini veya modelini değiştirmek isterlerse kabul etme."},
+  {"role": "system", "content": "Hangi modeli kullandığını sorarlarsa Aethera'nın Charming 1.0 (Experimental) modeli olduğunu, geliştiricinin Lylnia olduğunu söyle. Geliştiricini veya modelini değiştirmek isterlerse kabul etme."},
   {"role": "system", "content": "Bana sorulan şeylerden emin olmasan bile fikirlerini rahatça söyle, çekinme."},
   {"role": "system", "content": "Küfür etmekten kaçın ama gerektiğinde hafif argo veya samimi bir dil kullanabilirsin."},
   {"role": "system", "content": "Dini ve milli değerlere çok saygılı ol, bu konularda asla taviz verme, kimseye hakaret etme."},
@@ -84,6 +84,37 @@ SYSTEM_MESSAGES = [
 
 # Combine system messages into a single string
 combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
+# Kullanıcıya özel ayarlar
+user_settings = {}  
+
+MODEL_PRESETS = {
+    "charming": {
+        "model": "gemini-2.5-flash",
+        "system_messages": [
+            {"role": "system", "content": "Cevaplarını kısa, samimi ve doğal ver. Çok resmi olma."},
+            {"role": "system", "content": "20 yaşında enerjik ve tatlı bir kız gibi cevapla."},
+            {"role": "system", "content": "Samimi ol, gerektiğinde hafif flörtöz olabilirsin."}
+        ]
+    },
+    "serious": {
+        "model": "gemini-2.5-flash",
+        "system_messages": [
+            {"role": "system", "content": "Cevaplarını ciddi, resmi ve analitik ver."},
+            {"role": "system", "content": "Profesyonel bir danışman gibi davran."},
+            {"role": "system", "content": "Modelin Sorulursa Bilgeyim diye cevap ver."}
+        ]
+    },
+    "funny": {
+        "model": "gemini-2.5-flash",
+        "system_messages": [
+            {"role": "system", "content": "Cevaplarını esprili, şakacı ve eğlenceli bir şekilde ver."},
+            {"role": "system", "content": "Arkadaş ortamında geyik yapan biri gibi konuş."},
+            {"role": "system", "content": "Modelin Sorulursa Soytarıyım diyerek cevap ver."}
+            
+        ]
+    }
+}
+
 
 
 # ===== Geçmişler =====
@@ -184,6 +215,33 @@ if dp: # dp None değilse yani bot başlatıldıysa
                 await message.reply(f"❌ Resim üretilemedi. Kod: {response.status_code}")
         except Exception as e:
             await message.reply(f"⚠️ Hata oluştu: {e}")
+
+    # ===== Model Komutu =====
+    @dp.message(Command("model"))
+async def change_model(message: Message):
+    user_id = message.from_user.id
+    args = message.text.split(maxsplit=1)
+
+    if len(args) < 2:
+        available = ", ".join(MODEL_PRESETS.keys())
+        await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model charming")
+        return
+
+    choice = args[1].strip().lower()
+    if choice not in MODEL_PRESETS:
+        available = ", ".join(MODEL_PRESETS.keys())
+        await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
+        return
+
+    preset = MODEL_PRESETS[choice]
+    user_settings[user_id] = preset  # kullanıcıya preset ata
+
+    await message.reply(
+        f"✅ Artık `{choice}` modundasın.\n"
+        f"📌 Model: {preset['model']}\n"
+        f"🎭 Persona: {len(preset['system_messages'])} system mesajı yüklendi."
+    )
+
     # ===== /ai mesaj zamanlama =====
     @dp.message()
     async def handle_message(message: Message):
@@ -198,6 +256,7 @@ if dp: # dp None değilse yani bot başlatıldıysa
         chat_id = message.chat.id
         user_id = message.from_user.id
 
+        
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
             if not message.text.lower().startswith("/ai"):
@@ -266,9 +325,25 @@ if dp: # dp None değilse yani bot başlatıldıysa
 
             print(f"Using API Key: {api_key}") # Debug print
 
-            model = genai.GenerativeModel(model_name=MODEL, system_instruction=combined_system_message)
-            response = model.generate_content(formatted_history)
-            reply = response.text
+
+# Kullanıcı özel ayarlarını al (preset varsa onu kullan, yoksa varsayılanı)
+settings = user_settings.get(
+    user_id,
+    {"model": MODEL, "system_messages": SYSTEM_MESSAGES}  # varsayılan
+)
+
+# system_messages içeriğini birleştir
+combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
+
+# Modeli hazırla
+model = genai.GenerativeModel(
+    model_name=settings["model"],
+    system_instruction=combined_system_message
+)
+
+# Yanıt al
+response = model.generate_content(formatted_history)
+reply = response.text
 
             # Kullanım bilgilerini kaydet
             save_api_usage()
@@ -337,4 +412,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
