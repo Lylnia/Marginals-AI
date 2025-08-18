@@ -320,13 +320,16 @@ if dp:
 
 
             settings = user_settings.get(user_id)
-            if not settings:
-                await message.reply(
-                    "⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
-                    f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
-                )
-                return
 
+            # Model Seçme Zorunluluğu
+            if not settings or "model" not in settings:
+                if chat_type == "private":
+                    await message.reply("Önce /model ile bir model seçmelisin.")
+                    return
+                elif chat_type in ["group", "supergroup"]:
+                if message.text.startswith("/ai"):
+                    await message.reply("Önce /model ile bir model seçmelisin.")                    
+                    return
 
             # system_messages içeriğini birleştir
             combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
@@ -408,4 +411,5 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
