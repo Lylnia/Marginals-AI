@@ -241,33 +241,41 @@ if dp:
         chat_id = message.chat.id
         user_id = message.from_user.id
 
-        
-        # 🔹 Kullanıcı model seçmiş mi kontrol et
-        if user_id not in user_settings:
-            await message.reply(
-                "⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
-                f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}"
-            )
-            return
-            
+        user_input = message.text.strip()
+
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
-            if not message.text.lower().startswith("/ai"):
+            if not user_input.lower().startswith("/ai"):
                 return
-            user_input = message.text.replace("/ai", "").strip()
+            user_input = user_input.replace("/ai", "").strip()
 
             # Kullanıcıya özel geçmiş tanımla
             if chat_id not in group_histories:
                 group_histories[chat_id] = {}
             history = group_histories[chat_id].setdefault(user_id, [])
 
-        else:
-            user_input = message.text.strip()
-            history = private_histories.setdefault(user_id, [])
+        else: # Özel sohbetler
+             history = private_histories.setdefault(user_id, [])
+
+
+        # 🔹 Kullanıcı model seçmiş mi kontrol et
+        if user_id not in user_settings:
+            if chat_type == "private":  # DM'de her mesajda model sorulsun
+                await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
+                                    f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
+                return
+            elif chat_type in ["group", "supergroup"]:  # grupta sadece /ai olunca
+                if message.text and message.text.lower().startswith("/ai"): # Zaten yukarıda kontrol ettik ama emin olalım
+                    await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
+                                        f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
+                return
 
 
         if not user_input:
-            await message.reply("✏️ Lütfen bir mesaj yaz: /ai <mesaj>")
+            if chat_type in ("group", "supergroup"):
+                await message.reply("✏️ Lütfen bir mesaj yaz: /ai <mesaj>")
+            else:
+                 await message.reply("✏️ Lütfen bir mesaj yaz.")
             return
 
         await message.chat.do("typing")
@@ -320,16 +328,6 @@ if dp:
 
 
             settings = user_settings.get(user_id)
-
-            # Model seçilmemişse kontrol et
-            if not settings or "model" not in settings:
-                if chat_type == "private":  # DM'de her mesajda model sorulsun
-                    await message.reply("Önce /model ile bir model seçmelisin.")
-                    return
-                elif chat_type in ["group", "supergroup"]:  # grupta sadece /ai olunca
-                    if message.text and message.text.startswith("/ai"):
-                        await message.reply("Önce /model ile bir model seçmelisin.")
-                        return
 
 
             # system_messages içeriğini birleştir
@@ -412,7 +410,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
-
