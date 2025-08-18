@@ -319,17 +319,18 @@ if dp:
             print(f"Using API Key: {api_key}") # Debug print
 
 
-            settings = user_settings.get(user_id)
+        settings = user_settings.get(user_id)
 
-            # Model Seçme Zorunluluğu
+            # Model seçilmemişse kontrol et
             if not settings or "model" not in settings:
-                if chat_type == "private":
+                if chat_type == "private":  # DM'de her mesajda model sorulsun
                     await message.reply("Önce /model ile bir model seçmelisin.")
                     return
-                elif chat_type in ["group", "supergroup"]:
-                if message.text.startswith("/ai"):
-                    await message.reply("Önce /model ile bir model seçmelisin.")                    
-                    return
+                elif chat_type in ["group", "supergroup"]:  # grupta sadece /ai olunca
+                    if message.text and message.text.startswith("/ai"):
+                        await message.reply("Önce /model ile bir model seçmelisin.")
+                        return
+
 
             # system_messages içeriğini birleştir
             combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
@@ -411,5 +412,6 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
