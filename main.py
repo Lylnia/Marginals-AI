@@ -319,7 +319,7 @@ if dp:
             print(f"Using API Key: {api_key}") # Debug print
 
 
-        settings = user_settings.get(user_id)
+            settings = user_settings.get(user_id)
 
             # Model seçilmemişse kontrol et
             if not settings or "model" not in settings:
@@ -412,6 +412,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
