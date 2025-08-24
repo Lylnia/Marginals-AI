@@ -224,7 +224,7 @@ async def change_model(message: Message):
             "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
             "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n"
             "ℹ️ Bir model seçmek için: /model <isim> yazabilirsin.\n"
-            "   Örnek: /model Serena"
+            "Örnek: /model Serena"
         )
         return
 
@@ -429,3 +429,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
