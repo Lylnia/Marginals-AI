@@ -217,7 +217,11 @@ async def change_model(message: Message):
     args = message.text.split(maxsplit=1)
 
     active_model = user_settings.get(user_id)
-    active_model_name = active_model.get("model", "Henüz seçilmedi") if active_model else "Henüz seçilmedi"
+    if active_model:
+        active_model_name = active_model.get("model", "Henüz seçilmedi")
+    else:
+        active_model_name = "Henüz seçilmedi"
+
 
     if len(args) < 2:
         await message.reply(
@@ -431,4 +435,5 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
