@@ -225,11 +225,11 @@ async def change_model(message: Message):
         await message.reply(
             "⚙️ Kullanılabilir Modlar:\n\n"
             "- Serena: Samimi, enerjik ve tatlı; eğlenceli sohbetler için kullanabilirsin!\n"
-            "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
+            "- Minerva: Kısa ve resmi, tavsiye ve rehberlik için kullanabilirsin!\n"
             "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n\n"
             f"🔹 Şu anki aktif modelin: {active_model_name}\n"
-             "ℹ️ Bir model seçmek için: /model <isim> yazabilirsin.\n"
-             "   Örnek: /model Serena"
+            "ℹ️ Bir model seçmek için: /model <isim> yazabilirsin.\n"
+            "   Örnek: /model Serena"
         )
         return
 
@@ -254,6 +254,23 @@ async def change_model(message: Message):
         f"✅ Artık {choice} modundasın.\n"
         "🔄 Önceki geçmiş sıfırlandı, yepyeni bir başlangıç yapıyorsun!"
     )
+
+
+    # ===== /ai mesaj zamanlama =====
+    @dp.message()
+    async def handle_message(message: Message):
+        global current_key_index, api_key_usage
+
+        if message.from_user.is_bot:
+            return
+        if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+            return
+
+        chat_type = message.chat.type
+        chat_id = message.chat.id
+        user_id = message.from_user.id
+
+        user_input = message.text.strip()
 
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
@@ -422,9 +439,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
-
-
-
