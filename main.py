@@ -222,7 +222,6 @@ async def change_model(message: Message):
     else:
         active_model_name = "Henüz seçilmedi"
 
-
     if len(args) < 2:
         await message.reply(
             "⚙️ Kullanılabilir Modlar:\n\n"
@@ -435,5 +434,6 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
