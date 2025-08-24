@@ -216,25 +216,36 @@ async def change_model(message: Message):
     user_id = message.from_user.id
     args = message.text.split(maxsplit=1)
 
+    # Aktif model var mı kontrol et
+    active_model = user_settings.get(user_id)
+    active_model_name = active_model.get("model", "Henüz seçilmedi") if active_model else "Henüz seçilmedi"
+
+    # Eğer kullanıcı sadece /model yazdıysa, mevcut modları açıklamalı göster
     if len(args) < 2:
-        available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(
             "⚙️ Kullanılabilir Modlar:\n\n"
             "- Serena: Samimi, enerjik ve tatlı; eğlenceli sohbetler için kullanabilirsin!\n"
             "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
-            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!"
+            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n\n"
+            f"🔹 Şu anki aktif modelin: {active_model_name}\n"
+             "ℹ️ Bir model seçmek için: /model <isim> yazabilirsin.\n"
+             "   Örnek: /model Serena"
         )
         return
 
     choice = args[1].strip().lower()
     if choice not in MODEL_PRESETS:
         available = ", ".join(MODEL_PRESETS.keys())
-        await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
+        await message.reply(
+            f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}"
+        )
         return
 
+    # Kullanıcı için yeni modeli kaydet
     preset = MODEL_PRESETS[choice]
     user_settings[user_id] = preset
 
+    # Geçmişi sıfırla (hem private hem grup)
     private_histories.pop(user_id, None)
     for chat_id in group_histories:
         group_histories[chat_id].pop(user_id, None)
@@ -243,22 +254,6 @@ async def change_model(message: Message):
         f"✅ Artık {choice} modundasın.\n"
         "🔄 Önceki geçmiş sıfırlandı, yepyeni bir başlangıç yapıyorsun!"
     )
-
-    # ===== /ai mesaj zamanlama =====
-    @dp.message()
-    async def handle_message(message: Message):
-        global current_key_index, api_key_usage
-
-        if message.from_user.is_bot:
-            return
-        if message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-            return
-
-        chat_type = message.chat.type
-        chat_id = message.chat.id
-        user_id = message.from_user.id
-
-        user_input = message.text.strip()
 
         # Sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
@@ -427,6 +422,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
