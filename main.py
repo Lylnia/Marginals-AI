@@ -207,7 +207,7 @@ if dp:
         except Exception as e:
             await message.reply(f"⚠️ Hata oluştu: {e}")
 
-# ===== /model komutu =====
+# ===== /model Komutu =====
 @dp.message(Command("model"))
 async def change_model(message: Message):
     if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
@@ -216,19 +216,13 @@ async def change_model(message: Message):
     user_id = message.from_user.id
     args = message.text.split(maxsplit=1)
 
-    active_model = user_settings.get(user_id)
-    if active_model:
-        active_model_name = active_model.get("model", "Henüz seçilmedi")
-    else:
-        active_model_name = "Henüz seçilmedi"
-
     if len(args) < 2:
+        available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(
             "⚙️ Kullanılabilir Modlar:\n\n"
             "- Serena: Samimi, enerjik ve tatlı; eğlenceli sohbetler için kullanabilirsin!\n"
             "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
-            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n\n"
-            f"🔹 Şu anki aktif modelin: {active_model_name}\n"
+            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n"
             "ℹ️ Bir model seçmek için: /model <isim> yazabilirsin.\n"
             "   Örnek: /model Serena"
         )
@@ -242,6 +236,7 @@ async def change_model(message: Message):
 
     preset = MODEL_PRESETS[choice]
     user_settings[user_id] = preset
+
     private_histories.pop(user_id, None)
     for chat_id in group_histories:
         group_histories[chat_id].pop(user_id, None)
@@ -434,6 +429,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
