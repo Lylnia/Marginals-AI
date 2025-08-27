@@ -208,8 +208,8 @@ if dp:
             await message.reply(f"⚠️ Hata oluştu: {e}")
 
     # ===== /model Komutu =====
-     @dp.message(Command("model"))
-     async def change_model(message: Message):
+    @dp.message(Command("model"))
+    async def change_model(message: Message):
         if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
             return
             
@@ -417,6 +417,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
