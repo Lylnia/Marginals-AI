@@ -207,30 +207,29 @@ if dp:
         except Exception as e:
             await message.reply(f"⚠️ Hata oluştu: {e}")
 
-    # ===== /model Komutu =====
-@dp.message(Command("model"))
-async def change_model(message: Message):
-    if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-        return
-            
-    user_id = message.from_user.id
-    args = message.text.split(maxsplit=1)
+    # ===== Model Komutu =====
+    @dp.message(Command("model"))
+    async def change_model(message: Message):
+     user_id = message.from_user.id
+     args = message.text.split(maxsplit=1)
 
-    if len(args) < 2:
+     if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
         return
 
-    choice = args[1].strip().lower()
-    if choice not in MODEL_PRESETS:
+     choice = args[1].strip().lower()
+     if choice not in MODEL_PRESETS:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
         return
 
-    preset = MODEL_PRESETS[choice]
-    user_settings[user_id] = preset
+     preset = MODEL_PRESETS[choice]
+     user_settings[user_id] = preset
 
-    await message.reply(f"✅ Artık {choice} modundasın.\n")
+     await message.reply(
+        f"✅ Artık {choice} modundasın.\n"
+     )
 
     # ===== /ai mesaj zamanlama =====
     @dp.message()
@@ -415,14 +414,3 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
-
-
-
-
-
-
-
-
