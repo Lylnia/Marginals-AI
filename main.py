@@ -212,6 +212,7 @@ if dp:
     async def change_model(message: Message):
         if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
             return
+            
      user_id = message.from_user.id
      args = message.text.split(maxsplit=1)
 
@@ -416,3 +417,4 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
