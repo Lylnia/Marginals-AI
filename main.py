@@ -207,11 +207,12 @@ if dp:
         except Exception as e:
             await message.reply(f"⚠️ Hata oluştu: {e}")
 
-    # ===== Model Komutu =====
-    @dp.message(Command("model"))
-    async def change_model(message: Message):
-        if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-            return
+# ===== Model Komutu =====
+@dp.message(Command("model"))
+async def change_model(message: Message):
+    if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+        return
+
     user_id = message.from_user.id
     args = message.text.split(maxsplit=1)
 
@@ -221,7 +222,7 @@ if dp:
             "⚙️ Kullanılabilir Modlar:\n\n"
             "- Serena: Samimi, enerjik ve tatlı; eğlenceli sohbetler için kullanabilirsin!\n"
             "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
-            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!"
+            "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n"
             "- Model Seçmek için /model <isim> komutunu kullanabilirsin!"
         )
         return
@@ -232,10 +233,10 @@ if dp:
         await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
         return
 
-     preset = MODEL_PRESETS[choice]
-     user_settings[user_id] = preset
+    preset = MODEL_PRESETS[choice]
+    user_settings[user_id] = preset
 
-     await message.reply(f"✅ Artık {choice} modundasın.\n")
+    await message.reply(f"✅ Artık {choice} modundasın.\n")
 
     # ===== /ai mesaj zamanlama =====
     @dp.message()
@@ -420,6 +421,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
