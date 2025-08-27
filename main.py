@@ -216,7 +216,7 @@ if dp:
     user_id = message.from_user.id
     args = message.text.split(maxsplit=1)
 
-     if len(args) < 2:
+    if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
         return
@@ -417,6 +417,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
