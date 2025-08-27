@@ -218,12 +218,10 @@ async def change_model(message: Message):
 
     if len(args) < 2:
         available = ", ".join(MODEL_PRESETS.keys())
-        await message.reply(
-            "⚙️ Kullanılabilir Modlar:\n\n"
+        await message.reply("⚙️ Kullanılabilir Modlar:\n\n"
             "- Serena: Samimi, enerjik ve tatlı; eğlenceli sohbetler için kullanabilirsin!\n"
             "- Minerva: Kısa ve resmi, araştırma ve tavsiye için kullanabilirsin!\n"
             "- Tensio: Sert ve doğal, küfürlü ve esprili sohbetler için kullanabilirsin!\n"
-            "- Model Seçmek için /model <isim> komutunu kullanabilirsin!"
         )
         return
 
@@ -421,6 +419,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
