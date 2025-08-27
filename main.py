@@ -221,7 +221,7 @@ if dp:
         await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
         return
 
-     choice = args[1].strip().lower()
+      choice = args[1].strip().lower()
      if choice not in MODEL_PRESETS:
         available = ", ".join(MODEL_PRESETS.keys())
         await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
@@ -417,6 +417,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
