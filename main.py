@@ -227,10 +227,10 @@ if dp:
         await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
         return
 
-     preset = MODEL_PRESETS[choice]
-     user_settings[user_id] = preset
+    preset = MODEL_PRESETS[choice]
+    user_settings[user_id] = preset
 
-     await message.reply(
+    await message.reply(
         f"✅ Artık {choice} modundasın.\n"
      )
 
@@ -417,6 +417,7 @@ if __name__ == "__main__":
     else:
 
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
