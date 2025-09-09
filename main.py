@@ -276,7 +276,7 @@ if dp:
 
     # ===== Model Komutu =====
     @dp.message(Command("model"))
-        async def change_model(message: Message):
+    async def change_model(message: Message):
         if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
             return
 
@@ -448,6 +448,7 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
