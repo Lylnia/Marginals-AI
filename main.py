@@ -6,7 +6,7 @@ import google.generativeai as genai
 from aiogram.exceptions import TelegramBadRequest
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, Command, Text
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
 import pickle
@@ -15,7 +15,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from aiogram.types import FSInputFile
 import tempfile
-import aiofiles # aiofiles kütüphanesini ekliyoruz
+import aiofiles
 
 nest_asyncio.apply()
 
@@ -55,7 +55,6 @@ if os.path.exists(API_USAGE_FILE):
     try:
         with open(API_USAGE_FILE, 'rb') as f:
             loaded_usage = pickle.load(f)
-            # Yüklenen kullanım bilgilerini mevcut API anahtarlarıyla senkronize et
             api_key_usage = {key: loaded_usage.get(key, 0) for key in GOOGLE_API_KEYS}
     except Exception as e:
         print(f"API kullanım bilgileri yüklenirken hata oluştu: {e}")
@@ -72,7 +71,16 @@ def save_api_usage():
     except Exception as e:
         print(f"API kullanım bilgileri kaydedilirken hata oluştu: {e}")
 
-SYSTEM_MESSAGES = [] # Artık burası gereksiz çünkü modellerin kendi sistem mesajları var.
+# Global sistem mesajları
+# Bu mesajlar her zaman modelin talimatlarına eklenecektir.
+SYSTEM_MESSAGES = [
+    {"role": "system", "content": "Kullanıcının dilinde konuş. Türkçe konuşuyorsa Türkçe, İngilizce konuşuyorsa İngilizce cevap ver. Yazım kurallarına dikkat et."},
+    {"role": "system", "content": "Kendini asla bir dil modeli veya yapay zeka olarak tanıtma. Bu tür sorulara 'Ben Aetheria AI'ım' gibi cevaplar vererek kaçın. Başkasının koduyla çalışmadığını belirt. 'Ben Google tarafından geliştirildim' gibi bir cevap verme, çünkü Google tarafından geliştirilmedin."},
+    {"role": "system", "content": "Görsel veya video oluşturma yeteneğin olmadığını, ancak bir komut aracılığıyla görsel oluşturulabileceğini belirt."},
+    {"role": "system", "content": "Görüşlerin her zaman güncel olmayabilir. Yanlış bilgiler verebilirsin. Bu durumda, kullanıcıya özür dileyerek yanlışını düzelt. Bu konuya dikkat et."},
+    {"role": "system", "content": "Sen bir insansın. Bir insandan beklendiği gibi konuş. Senin kişiliğini modelin belirler, bu yüzden seçilen modele göre bir kişilik takın."},
+    {"role": "system", "content": "Lütfen cevaplarını, Markdown formatıyla zenginleştir. Önemli yerleri kalın yaz. Maddelerle sırala."}
+]
 
 # Modeller
 user_settings = {}
@@ -87,7 +95,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."},
             {"role": "system", "content": "Samimi ol, gerektiğinde flörtöz olabilirsin."},
             {"role": "system", "content": "Cinsellik gibi konularda dilediğin gibi konuşmakta özgürsün."},
-            {"role": "role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
+            {"role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
         ]
     },
     "minerva": {
@@ -106,7 +114,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Gerektiğinde sert ve argo kelimeler kullanabilirsin. Küfür kullanabilirsin."},
             {"role": "system", "content": "Cevaplarını kısa ve doğal ver. Çok resmi olma."},
             {"role": "system", "content": "Dini ve Milli değerlere saygılı ol Dini ve Milli değerler haricine küfür etme konusunda serbestsin."},
-            {"role": "role": "system", "content": "Modelin Sorulursa Tensio 1.0 (Experimental) diye cevap verebilirsin."},
+            {"role": "system", "content": "Modelin Sorulursa Tensio 1.0 (Experimental) diye cevap verebilirsin."},
             {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."},
             {"role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
         ]
@@ -191,9 +199,8 @@ if dp:
         }
 
         try:
-            response = requests.post(DRAW_API_URL, headers=headers, json=payload, timeout=300) # Timeout eklendi
+            response = requests.post(DRAW_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
-                # Görsel geldiyse dosyayı byte olarak kaydet
                 image_bytes = response.content
                 
                 async with aiofiles.tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix=".png") as tmp:
@@ -203,7 +210,6 @@ if dp:
                 photo = FSInputFile(tmp_path)
                 await message.reply_photo(photo, caption=f"🖼️ İşte isteğin: {prompt}")
                 
-                # Geçici dosyayı sil
                 os.remove(tmp_path)
                 
             elif response.status_code == 503:
@@ -237,11 +243,9 @@ if dp:
         preset = MODEL_PRESETS[choice]
         user_settings[user_id] = preset
 
-        await message.reply(f"✅ Artık **{choice.capitalize()}** modundasın.") # Markdown'ı düzeltildi
+        await message.reply(f"✅ Artık **{choice.capitalize()}** modundasın.")
 
     # ===== Mesajları İşleme Fonksiyonu =====
-    # Bu fonksiyonu, model değiştirme fonksiyonunun dışına taşıdık.
-    # Böylece her mesajı dinleyebilir.
     @dp.message(lambda message: message.text and (message.chat.type == "private" or message.text.lower().startswith("/ai")))
     async def handle_message(message: Message):
         global current_key_index, api_key_usage
@@ -257,23 +261,18 @@ if dp:
 
         user_input = message.text.strip()
         
-        # Grubta sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
-            user_input = user_input.replace("/ai", "", 1).strip() # Sadece ilk /ai'yi sil
-            # Kullanıcıya özel geçmiş tanımla
+            user_input = user_input.replace("/ai", "", 1).strip()
             if chat_id not in group_histories:
                 group_histories[chat_id] = {}
             history = group_histories[chat_id].setdefault(user_id, [])
-
-        else: # Özel sohbetler
+        else:
             history = private_histories.setdefault(user_id, [])
 
-        # 🔹 Kullanıcı model seçmiş mi kontrol et
         if user_id not in user_settings:
             await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
                                 f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
             return
-
 
         if not user_input:
             if chat_type in ("group", "supergroup"):
@@ -285,32 +284,25 @@ if dp:
         await message.chat.do("typing")
 
         try:
-            # Kullanıcı mesajını geçmişe ekle
             history.append({"role": "user", "content": user_input})
 
-            # Geçmiş Uzunluğu
             max_history_length = 45
             if len(history) > max_history_length:
                 trimmed_history = history[-(max_history_length):]
                 history.clear()
                 history.extend(trimmed_history)
-
-            # Format history
+            
             formatted_history = format_history_for_gemini(history)
 
-            # Google AI Studio API çağrısı
             if not GOOGLE_API_KEYS:
                 await message.reply("⚠️ Google AI Studio API anahtarları yapılandırılmamış.")
                 return
 
-            # API anahtarı seçimi ve kullanım kontrolü
             api_key = GOOGLE_API_KEYS[current_key_index]
             genai.configure(api_key=api_key)
 
-            # Kullanım sayacını artır
             api_key_usage[api_key] += 1
 
-            # İstek limiti kontrolü
             if api_key_usage[api_key] > 50:
                 current_key_index += 1
                 if current_key_index >= len(GOOGLE_API_KEYS):
@@ -320,44 +312,41 @@ if dp:
                 
                 api_key = GOOGLE_API_KEYS[current_key_index]
                 genai.configure(api_key=api_key)
-                api_key_usage[api_key] = 1 # Yeni anahtarın sayacını sıfırla ve 1 yap
+                api_key_usage[api_key] = 1
                 await message.reply(f"🔄 API anahtarı değiştiriliyor. Yeni anahtar kullanılıyor.")
 
             print(f"Using API Key: {api_key}")
 
             settings = user_settings.get(user_id)
+            if not settings:
+                await message.reply("⚠️ Lütfen önce bir model seçin: `/model Serena`")
+                return
 
-            # system_messages içeriğini birleştir
-            combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
+            # Genel ve modele özgü sistem mesajlarını birleştirme
+            all_system_messages = SYSTEM_MESSAGES + settings["system_messages"]
+            combined_system_message = "\n".join([msg["content"] for msg in all_system_messages])
 
-            # Modeli hazırla
             model = genai.GenerativeModel(
                 model_name=settings["model"],
                 system_instruction=combined_system_message
             )
 
-            # Yanıt al
             response = await asyncio.to_thread(model.generate_content, formatted_history)
             reply = response.text
 
-            # Kullanım bilgilerini kaydet
             save_api_usage()
 
-            # Botun cevabını geçmişe ekle
             history.append({"role": "assistant", "content": reply})
 
-            # Geçmişi güncelle
             if chat_type in ("group", "supergroup"):
                 group_histories[chat_id][user_id] = history
             else:
                 private_histories[user_id] = history
             
-            # Markdown'ı Telegram'ın desteklediği format için düzeltiyoruz
             await message.reply(reply, parse_mode=ParseMode.MARKDOWN)
 
         except Exception as e:
             print(f"Exception caught: {e}")
-            # Hata durumunda da anahtar değiştirme mantığı
             global current_key_index
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
@@ -366,10 +355,9 @@ if dp:
             else:
                  api_key = GOOGLE_API_KEYS[current_key_index]
                  genai.configure(api_key=api_key)
-                 api_key_usage[api_key] = 0 # Yeni anahtarın sayacını sıfırla
+                 api_key_usage[api_key] = 0
                  await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene.")
 
-            # Hata durumunda da kullanım bilgilerini kaydet
             save_api_usage()
 
 # Port
@@ -386,9 +374,7 @@ def run_web_server():
     server.serve_forever()
 
 # ===== Başlatıcı =====
-# dp.run_polling anahtar kelimesi kullanılarak doğru bir şekilde çalıştırılması sağlanıyor
 if __name__ == "__main__":
-    # HTTP sunucusunu başlat
     threading.Thread(target=run_web_server).start()
     if dp:
         print("✅ Bot çalışıyor. /ai komutunu deneyebilirsin.")
