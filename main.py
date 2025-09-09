@@ -160,6 +160,60 @@ if dp:
             "⚙️ /model <model_adı> yazarak karakterimi değiştirebilirsin."
         )
 
+# ===== /help =====
+    @dp.message(Command("help"))
+    async def help_command(message: Message):
+        if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+            return
+        
+        help_text = (
+            "🧠 **Sohbet Komutları:**\n"
+            "• `/ai <mesaj>` - Yapay zeka ile sohbet et.\n"
+            "• `/model <model_adı>` - Sohbet kişiliğini değiştir.\n"
+            "  (Örn: `/model Serena`)\n\n"
+            "🎨 **Görsel Komutları:**\n"
+            "• `/draw <açıklama>` - Yapay zeka ile resim çiz.\n\n"
+            "⚙️ **Yönetim Komutları:**\n"
+            "• `/reborn` - Sohbet geçmişini sıfırla.\n"
+            "• `/status` - Botun güncel durumunu gösterir.\n\n"
+            "Kullanılabilir modelleri görmek için: `/model` yazabilirsin."
+        )
+        await message.reply(help_text, parse_mode=ParseMode.MARKDOWN)
+
+# ===== /status =====
+
+    @dp.message(Command("status"))
+    async def show_status(message: Message):
+        if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+            return
+        
+        # Botun ne kadar süredir çalıştığını hesapla
+        uptime_seconds = int(time.time()) - BOT_BASLAMA_ZAMANI
+        days, remainder = divmod(uptime_seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        # Şu anki kullanıcı için hangi modelin seçili olduğunu bul
+        user_id = message.from_user.id
+        current_model_info = user_settings.get(user_id, {})
+        current_model_name = current_model_info.get("model", "Seçili Değil")
+
+        # Şu an kullanılan API anahtarının indexi ve kullanım sayısı
+        current_api_key = GOOGLE_API_KEYS[current_key_index]
+        current_api_usage = api_key_usage.get(current_api_key, 0)
+        current_api_key_name = f"Anahtar {current_key_index + 1}"
+
+        status_message = (
+            "📊 **Bot Durum Bilgileri**\n\n"
+            f"**Bot Açık Kalma Süresi:** `{days}g {hours}s {minutes}d {seconds}sn`\n"
+            f"**Aktif Model:** `{current_model_name}`\n"
+            f"**API Durumu:**\n"
+            f"  • Kullanılan Anahtar: `{current_api_key_name}`\n"
+            f"  • Bu Anahtar ile Yapılan İstek: `{current_api_usage}`\n"
+        )
+
+        await message.reply(status_message, parse_mode=ParseMode.MARKDOWN)
+
     # ===== /reborn =====
     @dp.message(Command("reborn"))
     async def reset_history(message: Message):
@@ -221,7 +275,7 @@ if dp:
             print(f"Hata: {e}")
 
     # ===== Model Komutu =====
-    @dp.message(Command("model"))
+@dp.message(Command("model"))
     async def change_model(message: Message):
         if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
             return
@@ -242,8 +296,21 @@ if dp:
 
         preset = MODEL_PRESETS[choice]
         user_settings[user_id] = preset
+        
+        # 👇️ Buradan itibaren yeni kod 👇️
 
-        await message.reply(f"✅ Artık **{choice.capitalize()}** modundasın.")
+        # Konuşma geçmişini sıfırla
+        if message.chat.type in ("group", "supergroup"):
+            if message.chat.id in group_histories and user_id in group_histories[message.chat.id]:
+                group_histories[message.chat.id].pop(user_id, None)
+        else:
+            private_histories.pop(user_id, None)
+
+        # Mesajı gönder
+        await message.reply(
+            f"✅ Artık **{choice.capitalize()}** modundasın.\n"
+            f"🔄 Geçmişin otomatik olarak sıfırlandı."
+        )
 
     # ===== Mesajları İşleme Fonksiyonu =====
     @dp.message(lambda message: message.text and (message.chat.type == "private" or message.text.lower().startswith("/ai")))
@@ -381,4 +448,5 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
