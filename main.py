@@ -347,7 +347,7 @@ if dp:
 
         except Exception as e:
             print(f"Exception caught: {e}")
-            global current_key_index
+            current_key_index
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
                 current_key_index = 0
@@ -381,3 +381,4 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
