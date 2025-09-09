@@ -297,18 +297,14 @@ if dp:
         preset = MODEL_PRESETS[choice]
         user_settings[user_id] = preset
         
-        # 👇️ Buradan itibaren yeni kod 👇️
-
-        # Konuşma geçmişini sıfırla
         if message.chat.type in ("group", "supergroup"):
             if message.chat.id in group_histories and user_id in group_histories[message.chat.id]:
                 group_histories[message.chat.id].pop(user_id, None)
         else:
             private_histories.pop(user_id, None)
 
-        # Mesajı gönder
         await message.reply(
-            f"✅ Artık **{choice.capitalize()}** modundasın.\n"
+            f"✅ Artık {choice.capitalize()} modundasın.\n"
             f"🔄 Geçmişin otomatik olarak sıfırlandı."
         )
 
@@ -389,7 +385,6 @@ if dp:
                 await message.reply("⚠️ Lütfen önce bir model seçin: `/model Serena`")
                 return
 
-            # Genel ve modele özgü sistem mesajlarını birleştirme
             all_system_messages = SYSTEM_MESSAGES + settings["system_messages"]
             combined_system_message = "\n".join([msg["content"] for msg in all_system_messages])
 
@@ -448,4 +443,3 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
