@@ -6,11 +6,16 @@ import google.generativeai as genai
 from aiogram.exceptions import TelegramBadRequest
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart, Command, Text
 from aiogram.types import Message
 from aiogram.client.default import DefaultBotProperties
 import pickle
 import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from aiogram.types import FSInputFile
+import tempfile
+import aiofiles # aiofiles kütüphanesini ekliyoruz
 
 nest_asyncio.apply()
 
@@ -56,7 +61,7 @@ if os.path.exists(API_USAGE_FILE):
         print(f"API kullanım bilgileri yüklenirken hata oluştu: {e}")
         api_key_usage = {key: 0 for key in GOOGLE_API_KEYS}
 else:
-    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS} # Hata düzeltildi: GOGLE_API_KEYS -> GOOGLE_API_KEYS
+    api_key_usage = {key: 0 for key in GOOGLE_API_KEYS}
 
 
 # Kullanım bilgilerini dosyaya kaydetme fonksiyonu
@@ -67,10 +72,8 @@ def save_api_usage():
     except Exception as e:
         print(f"API kullanım bilgileri kaydedilirken hata oluştu: {e}")
 
-SYSTEM_MESSAGES = [
-]
+SYSTEM_MESSAGES = [] # Artık burası gereksiz çünkü modellerin kendi sistem mesajları var.
 
-combined_system_message = "\n".join([msg["content"] for msg in SYSTEM_MESSAGES])
 # Modeller
 user_settings = {}
 
@@ -84,7 +87,7 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."},
             {"role": "system", "content": "Samimi ol, gerektiğinde flörtöz olabilirsin."},
             {"role": "system", "content": "Cinsellik gibi konularda dilediğin gibi konuşmakta özgürsün."},
-            {"role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
+            {"role": "role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
         ]
     },
     "minerva": {
@@ -103,13 +106,12 @@ MODEL_PRESETS = {
             {"role": "system", "content": "Gerektiğinde sert ve argo kelimeler kullanabilirsin. Küfür kullanabilirsin."},
             {"role": "system", "content": "Cevaplarını kısa ve doğal ver. Çok resmi olma."},
             {"role": "system", "content": "Dini ve Milli değerlere saygılı ol Dini ve Milli değerler haricine küfür etme konusunda serbestsin."},
-            {"role": "system", "content": "Modelin Sorulursa Tensio 1.0 (Experimental) diye cevap verebilirsin."},
+            {"role": "role": "system", "content": "Modelin Sorulursa Tensio 1.0 (Experimental) diye cevap verebilirsin."},
             {"role": "system", "content": "Geliştiricin kim diye sorulursa Aetheria Labs tarafından geliştirildim diyebilirsin."},
             {"role": "system", "content": "API Anahtarı gibi özel şeyleri isteyenlerle alay et."}
         ]
     }
 }
-
 
 
 # ===== Geçmişler =====
@@ -145,7 +147,9 @@ if dp:
         await message.answer(
             "👋 Selam! Ben Aetheria AI.\n\n"
             "🧠 /ai <mesaj> yazarak bana soru sorabilirsin.\n"
-            "🔄 /reborn yazarak geçmişi sıfırlayabilirsin."
+            "🔄 /reborn yazarak geçmişi sıfırlayabilirsin.\n"
+            "🎨 /draw <açıklama> yazarak resim çizebilirsin.\n"
+            "⚙️ /model <model_adı> yazarak karakterimi değiştirebilirsin."
         )
 
     # ===== /reborn =====
@@ -187,53 +191,58 @@ if dp:
         }
 
         try:
-            response = requests.post(DRAW_API_URL, headers=headers, json=payload)
+            response = requests.post(DRAW_API_URL, headers=headers, json=payload, timeout=300) # Timeout eklendi
             if response.status_code == 200:
                 # Görsel geldiyse dosyayı byte olarak kaydet
                 image_bytes = response.content
-                from aiogram.types import FSInputFile
-                import tempfile
-
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-                    tmp.write(image_bytes)
+                
+                async with aiofiles.tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix=".png") as tmp:
+                    await tmp.write(image_bytes)
                     tmp_path = tmp.name
 
                 photo = FSInputFile(tmp_path)
                 await message.reply_photo(photo, caption=f"🖼️ İşte isteğin: {prompt}")
+                
+                # Geçici dosyayı sil
+                os.remove(tmp_path)
+                
             elif response.status_code == 503:
                 await message.reply("⏳ Model şu anda yükleniyor. Lütfen birkaç saniye sonra tekrar dene.")
             else:
                 await message.reply(f"❌ Resim üretilemedi. Kod: {response.status_code}")
         except Exception as e:
             await message.reply(f"⚠️ Hata oluştu: {e}")
+            print(f"Hata: {e}")
 
-# ===== Model Komutu =====
-@dp.message(Command("model"))
-async def change_model(message: Message):
-    if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
-        return
+    # ===== Model Komutu =====
+    @dp.message(Command("model"))
+    async def change_model(message: Message):
+        if message.from_user.is_bot or message.date.timestamp() < BOT_BASLAMA_ZAMANI:
+            return
 
-    user_id = message.from_user.id
-    args = message.text.split(maxsplit=1)
+        user_id = message.from_user.id
+        args = message.text.split(maxsplit=1)
 
-    if len(args) < 2:
-        available = ", ".join(MODEL_PRESETS.keys())
-        await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
-        return
+        if len(args) < 2:
+            available = ", ".join(MODEL_PRESETS.keys())
+            await message.reply(f"⚙️ Kullanılabilir modlar: {available}\n\nÖrnek: /model Serena")
+            return
 
-    choice = args[1].strip().lower()
-    if choice not in MODEL_PRESETS:
-        available = ", ".join(MODEL_PRESETS.keys())
-        await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
-        return
+        choice = args[1].strip().lower()
+        if choice not in MODEL_PRESETS:
+            available = ", ".join(MODEL_PRESETS.keys())
+            await message.reply(f"❌ Geçersiz seçim: {choice}\n\nMevcut seçenekler: {available}")
+            return
 
-    preset = MODEL_PRESETS[choice]
-    user_settings[user_id] = preset
+        preset = MODEL_PRESETS[choice]
+        user_settings[user_id] = preset
 
-    await message.reply(f"✅ Artık {choice} modundasın.\n")
+        await message.reply(f"✅ Artık **{choice.capitalize()}** modundasın.") # Markdown'ı düzeltildi
 
-    # ===== /ai mesaj zamanlama =====
-    @dp.message()
+    # ===== Mesajları İşleme Fonksiyonu =====
+    # Bu fonksiyonu, model değiştirme fonksiyonunun dışına taşıdık.
+    # Böylece her mesajı dinleyebilir.
+    @dp.message(lambda message: message.text and (message.chat.type == "private" or message.text.lower().startswith("/ai")))
     async def handle_message(message: Message):
         global current_key_index, api_key_usage
 
@@ -247,40 +256,30 @@ async def change_model(message: Message):
         user_id = message.from_user.id
 
         user_input = message.text.strip()
-
-        # Sadece /ai ile başlayan mesajlara cevap ver
+        
+        # Grubta sadece /ai ile başlayan mesajlara cevap ver
         if chat_type in ("group", "supergroup"):
-            if not user_input.lower().startswith("/ai"):
-                return
-            user_input = user_input.replace("/ai", "").strip()
-
+            user_input = user_input.replace("/ai", "", 1).strip() # Sadece ilk /ai'yi sil
             # Kullanıcıya özel geçmiş tanımla
             if chat_id not in group_histories:
                 group_histories[chat_id] = {}
             history = group_histories[chat_id].setdefault(user_id, [])
 
         else: # Özel sohbetler
-             history = private_histories.setdefault(user_id, [])
-
+            history = private_histories.setdefault(user_id, [])
 
         # 🔹 Kullanıcı model seçmiş mi kontrol et
         if user_id not in user_settings:
-            if chat_type == "private":  # DM'de her mesajda model sorulsun
-                await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
-                                    f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
-                return
-            elif chat_type in ["group", "supergroup"]:  # grupta sadece /ai olunca
-                if message.text and message.text.lower().startswith("/ai"): # Zaten yukarıda kontrol ettik ama emin olalım
-                    await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
-                                        f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
-                return
+            await message.reply("⚠️ Önce bir model seçmelisin. Örnek: /model Serena\n"
+                                f"Mevcut seçenekler: {', '.join(MODEL_PRESETS.keys())}")
+            return
 
 
         if not user_input:
             if chat_type in ("group", "supergroup"):
                 await message.reply("✏️ Lütfen bir mesaj yaz: /ai <mesaj>")
             else:
-                 await message.reply("✏️ Lütfen bir mesaj yaz.")
+                await message.reply("✏️ Lütfen bir mesaj yaz.")
             return
 
         await message.chat.do("typing")
@@ -290,20 +289,14 @@ async def change_model(message: Message):
             history.append({"role": "user", "content": user_input})
 
             # Geçmiş Uzunluğu
-            # Sistem mesajları her zaman listenin başında olacağı için kırpma sadece kullanıcı/bot mesajları için geçerli olacak
             max_history_length = 45
-            # Gerçek kırpma uzunluğu = max_history_length - len(SYSTEM_MESSAGES)
-            actual_trim_length = max_history_length - len(SYSTEM_MESSAGES)
-            if len(history) > actual_trim_length:
-                 # En son `actual_trim_length` kadar kullanıcı/bot mesajını al
-                trimmed_history = history[-(actual_trim_length):]
-                history = trimmed_history
-
+            if len(history) > max_history_length:
+                trimmed_history = history[-(max_history_length):]
+                history.clear()
+                history.extend(trimmed_history)
 
             # Format history
             formatted_history = format_history_for_gemini(history)
-
-
 
             # Google AI Studio API çağrısı
             if not GOOGLE_API_KEYS:
@@ -317,23 +310,22 @@ async def change_model(message: Message):
             # Kullanım sayacını artır
             api_key_usage[api_key] += 1
 
-            # İstek limiti kontrolü (basit bir kontrol, gerçek limit aşıldığında hata yakalama daha sağlamdır)
-            if api_key_usage[api_key] > 50: # Örnek limit: 50
+            # İstek limiti kontrolü
+            if api_key_usage[api_key] > 50:
                 current_key_index += 1
                 if current_key_index >= len(GOOGLE_API_KEYS):
-                    current_key_index = 0 # Başa dön (veya tüm anahtarlar tükenirse hata verilebilir)
+                    current_key_index = 0
                     await message.reply("⚠️ Tüm API anahtarlarının günlük limiti dolmuş olabilir. Lütfen daha sonra tekrar deneyin.")
                     return
+                
                 api_key = GOOGLE_API_KEYS[current_key_index]
                 genai.configure(api_key=api_key)
                 api_key_usage[api_key] = 1 # Yeni anahtarın sayacını sıfırla ve 1 yap
                 await message.reply(f"🔄 API anahtarı değiştiriliyor. Yeni anahtar kullanılıyor.")
 
-            print(f"Using API Key: {api_key}") # Debug print
-
+            print(f"Using API Key: {api_key}")
 
             settings = user_settings.get(user_id)
-
 
             # system_messages içeriğini birleştir
             combined_system_message = "\n".join([msg["content"] for msg in settings["system_messages"]])
@@ -345,31 +337,31 @@ async def change_model(message: Message):
             )
 
             # Yanıt al
-            response = model.generate_content(formatted_history)
+            response = await asyncio.to_thread(model.generate_content, formatted_history)
             reply = response.text
 
             # Kullanım bilgilerini kaydet
             save_api_usage()
 
-
             # Botun cevabını geçmişe ekle
             history.append({"role": "assistant", "content": reply})
 
-            # Geçmişi güncelle (history zaten güncellenmiş referansı tutuyor)
+            # Geçmişi güncelle
             if chat_type in ("group", "supergroup"):
                 group_histories[chat_id][user_id] = history
             else:
                 private_histories[user_id] = history
-
+            
+            # Markdown'ı Telegram'ın desteklediği format için düzeltiyoruz
             await message.reply(reply, parse_mode=ParseMode.MARKDOWN)
 
         except Exception as e:
-            print(f"Exception caught: {e}") # Debug print
-            # Hata durumunda da anahtar değiştirme mantığı eklenebilir (özellikle 429 Too Many Requests hatası için)
-            current_key_index, api_key_usage # Global değişkenleri tekrar belirtmeye gerek yok
+            print(f"Exception caught: {e}")
+            # Hata durumunda da anahtar değiştirme mantığı
+            global current_key_index
             current_key_index += 1
             if current_key_index >= len(GOOGLE_API_KEYS):
-                current_key_index = 0 # Başa dön
+                current_key_index = 0
                 await message.reply("⚠️ Tüm API anahtarlarının günlük limiti dolmuş olabilir veya bir hata oluştu. Lütfen daha sonra tekrar deneyin.")
             else:
                  api_key = GOOGLE_API_KEYS[current_key_index]
@@ -377,13 +369,10 @@ async def change_model(message: Message):
                  api_key_usage[api_key] = 0 # Yeni anahtarın sayacını sıfırla
                  await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene.")
 
-            # Hata durumunda da kullanım bilgilerini kaydetmek isteyebilirsin
+            # Hata durumunda da kullanım bilgilerini kaydet
             save_api_usage()
 
 # Port
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 class DummyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -397,29 +386,12 @@ def run_web_server():
     server.serve_forever()
 
 # ===== Başlatıcı =====
-async def main():
-    if bot and dp: # Bot ve dispatcher başarıyla oluşturulduysa
-        print("✅ Bot çalışıyor. /ai komutunu deneyebilirsin.")
-        await dp.start_polling(bot)
-    else:
-        print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-# Use dp.run_polling instead of asyncio.run(main())
+# dp.run_polling anahtar kelimesi kullanılarak doğru bir şekilde çalıştırılması sağlanıyor
 if __name__ == "__main__":
-        # HTTP sunucusunu başlat
+    # HTTP sunucusunu başlat
     threading.Thread(target=run_web_server).start()
-    # Bot ve dispatcher başarıyla oluşturulduysa çalıştır
     if dp:
         print("✅ Bot çalışıyor. /ai komutunu deneyebilirsin.")
         dp.run_polling(bot)
     else:
-
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
-
-
-
-
-
-
-
-
