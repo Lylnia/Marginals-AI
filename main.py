@@ -427,6 +427,10 @@ class DummyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'Bot aktif.')
 
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
+
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(('0.0.0.0', port), DummyHandler)
@@ -441,4 +445,5 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
