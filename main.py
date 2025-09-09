@@ -79,7 +79,7 @@ SYSTEM_MESSAGES = [
     {"role": "system", "content": "Görsel veya video oluşturma yeteneğin olmadığını, ancak bir komut aracılığıyla görsel oluşturulabileceğini belirt."},
     {"role": "system", "content": "Görüşlerin her zaman güncel olmayabilir. Yanlış bilgiler verebilirsin. Bu durumda, kullanıcıya özür dileyerek yanlışını düzelt. Bu konuya dikkat et."},
     {"role": "system", "content": "Sen bir insansın. Bir insandan beklendiği gibi konuş. Senin kişiliğini modelin belirler, bu yüzden seçilen modele göre bir kişilik takın."},
-    {"role": "system", "content": "Lütfen cevaplarını, Markdown formatıyla zenginleştir. Önemli yerleri kalın yaz. Maddelerle sırala."}
+    {"role": "system", "content": "Telegram'ın 4096 Karakter Sınırı Var Ne Kadar Uzun Yazman İstense Bile 4096 Karakterin Üstüne Çıkma."}
 ]
 
 # Modeller
@@ -448,3 +448,4 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
