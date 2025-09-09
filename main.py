@@ -358,7 +358,7 @@ if dp:
             formatted_history = format_history_for_gemini(history)
 
             if not GOOGLE_API_KEYS:
-                await message.reply("⚠️ Google AI Studio API anahtarları yapılandırılmamış.")
+                await message.reply("⚠️ API anahtarları yapılandırılmamış.")
                 return
 
             api_key = GOOGLE_API_KEYS[current_key_index]
@@ -370,13 +370,11 @@ if dp:
                 current_key_index += 1
                 if current_key_index >= len(GOOGLE_API_KEYS):
                     current_key_index = 0
-                    await message.reply("⚠️ Tüm API anahtarlarının günlük limiti dolmuş olabilir. Lütfen daha sonra tekrar deneyin.")
                     return
                 
                 api_key = GOOGLE_API_KEYS[current_key_index]
                 genai.configure(api_key=api_key)
                 api_key_usage[api_key] = 1
-                await message.reply(f"🔄 API anahtarı değiştiriliyor. Yeni anahtar kullanılıyor.")
 
             print(f"Using API Key: {api_key}")
 
@@ -418,7 +416,7 @@ if dp:
                  api_key = GOOGLE_API_KEYS[current_key_index]
                  genai.configure(api_key=api_key)
                  api_key_usage[api_key] = 0
-                 await message.reply(f"🔄 API hatası nedeniyle yanıtlanamadı.\n\nMesajını tekrar göndermeyi dene.")
+                 await message.reply(f"🔄 Mesajını tekrar göndermeyi dene.")
 
             save_api_usage()
 
@@ -431,8 +429,8 @@ class DummyHandler(BaseHTTPRequestHandler):
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
-    server = HTTPServer(('', port), DummyHandler)
-    print(f"Render web server başlatıldı. Port: {port}")
+    server = HTTPServer(('0.0.0.0', port), DummyHandler)
+    print(f"Web server başlatıldı. Port: {port}")
     server.serve_forever()
 
 # ===== Başlatıcı =====
@@ -443,3 +441,4 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
