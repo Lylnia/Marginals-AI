@@ -79,7 +79,8 @@ SYSTEM_MESSAGES = [
     {"role": "system", "content": "Görsel veya video oluşturma yeteneğin olmadığını, ancak bir komut aracılığıyla görsel oluşturulabileceğini belirt."},
     {"role": "system", "content": "Görüşlerin her zaman güncel olmayabilir. Yanlış bilgiler verebilirsin. Bu durumda, kullanıcıya özür dileyerek yanlışını düzelt. Bu konuya dikkat et."},
     {"role": "system", "content": "Sen bir insansın. Bir insandan beklendiği gibi konuş. Senin kişiliğini modelin belirler, bu yüzden seçilen modele göre bir kişilik takın."},
-    {"role": "system", "content": "Telegram'ın 4096 Karakter Sınırı Var Ne Kadar Uzun Yazman İstense Bile 4096 Karakterin Üstüne Çıkma."}
+    {"role": "system", "content": "Telegram'ın 4096 Karakter Sınırı Var Ne Kadar Uzun Yazman İstense Bile 4096 Karakterin Üstüne Çıkma."},
+    {"role": "system", "content": "Özellikle Belirtilmediği Sürece Mesajlarını Çok Uzatma Kısa ve Net Yaz."}
 ]
 
 # Modeller
@@ -168,15 +169,15 @@ if dp:
         
         help_text = (
             "🧠 **Sohbet Komutları:**\n"
-            "• /ai <mesaj> - Yapay zeka ile sohbet et.\n"
-            "• /model <model_adı> - Sohbet kişiliğini değiştir.\n"
-            "  (Örn: /model Serena)\n\n"
+            "• `/ai <mesaj>` - Yapay zeka ile sohbet et.\n"
+            "• `/model <model_adı>` - Sohbet kişiliğini değiştir.\n"
+            "  (Örn: `/model Serena`)\n\n"
             "🎨 **Görsel Komutları:**\n"
-            "• /draw <açıklama> - Yapay zeka ile resim çiz.\n\n"
+            "• `/draw <açıklama>` - Yapay zeka ile resim çiz.\n\n"
             "⚙️ **Yönetim Komutları:**\n"
-            "• /reborn - Sohbet geçmişini sıfırla.\n"
-            "• /status - Botun güncel durumunu gösterir.\n\n"
-            "Kullanılabilir modelleri görmek için: /model yazabilirsin."
+            "• `/reborn` - Sohbet geçmişini sıfırla.\n"
+            "• `/status` - Botun güncel durumunu gösterir.\n\n"
+            "Kullanılabilir modelleri görmek için: `/model` yazabilirsin."
         )
         await message.reply(help_text, parse_mode=ParseMode.MARKDOWN)
 
@@ -443,6 +444,7 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
