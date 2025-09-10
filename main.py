@@ -167,18 +167,18 @@ if dp:
             return
         
         help_text = (
-            "🧠 **Sohbet Komutları:**\n"
-            "• `/ai <mesaj>` - Yapay zeka ile sohbet et.\n"
-            "• `/model <model_adı>` - Sohbet kişiliğini değiştir.\n"
-            "  (Örn: `/model Serena`)\n\n"
-            "🎨 **Görsel Komutları:**\n"
-            "• `/draw <açıklama>` - Yapay zeka ile resim çiz.\n\n"
-            "⚙️ **Yönetim Komutları:**\n"
-            "• `/reborn` - Sohbet geçmişini sıfırla.\n"
-            "• `/status` - Botun güncel durumunu gösterir.\n\n"
-            "Kullanılabilir modelleri görmek için: `/model` yazabilirsin."
+            "🧠 <b>Sohbet Komutları:<b>\n"
+            "• /ai <mesaj> - Yapay zeka ile sohbet et.\n"
+            "• /model <model_adı> - Sohbet kişiliğini değiştir.\n"
+            "  (Örn: /model Serena)\n\n"
+            "🎨 <b>Görsel Komutları:<b>\n"
+            "• /draw <açıklama> - Yapay zeka ile resim çiz.\n\n"
+            "⚙️ <b>Yönetim Komutları:<b>\n"
+            "• /reborn - Sohbet geçmişini sıfırla.\n"
+            "• /status - Botun güncel durumunu gösterir.\n\n"
+            "Kullanılabilir modelleri görmek için: /model yazabilirsin."
         )
-        await message.reply(help_text, parse_mode=ParseMode.MARKDOWN)
+        await message.reply(help_text, parse_mode=ParseMode.HTML)
 
 # ===== /status =====
 
@@ -205,12 +205,12 @@ if dp:
 
         status_message = (
             "📊 **Bot Durum Bilgileri**\n\n"
-            f"**Bot Açık Kalma Süresi:** `{days}g {hours}s {minutes}d {seconds}sn`\n"
-            f"  • Kullanılan Anahtar: `{current_api_key_name}`\n"
-            f"  • Bu Anahtar ile Yapılan İstek: `{current_api_usage}`\n"
+            f"<b>Bot Açık Kalma Süresi:<b> {days}g {hours}s {minutes}d {seconds}sn\n"
+            f"  • Kullanılan Anahtar: {current_api_key_name}\n"
+            f"  • Bu Anahtar ile Yapılan İstek: {current_api_usage}\n"
         )
 
-        await message.reply(status_message, parse_mode=ParseMode.MARKDOWN)
+        await message.reply(status_message, parse_mode=ParseMode.HTML)
 
     # ===== /reborn =====
     @dp.message(Command("reborn"))
@@ -401,7 +401,7 @@ if dp:
             else:
                 private_histories[user_id] = history
             
-            await message.reply(reply, parse_mode=ParseMode.MARKDOWN)
+            await message.reply(reply, parse_mode=ParseMode.HTML)
 
         except Exception as e:
             print(f"Exception caught: {e}")
@@ -443,6 +443,7 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
