@@ -206,8 +206,6 @@ if dp:
         status_message = (
             "📊 **Bot Durum Bilgileri**\n\n"
             f"**Bot Açık Kalma Süresi:** `{days}g {hours}s {minutes}d {seconds}sn`\n"
-            f"**Aktif Model:** `{current_model_name}`\n"
-            f"**API Durumu:**\n"
             f"  • Kullanılan Anahtar: `{current_api_key_name}`\n"
             f"  • Bu Anahtar ile Yapılan İstek: `{current_api_usage}`\n"
         )
@@ -445,5 +443,6 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
