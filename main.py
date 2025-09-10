@@ -167,18 +167,18 @@ if dp:
             return
         
         help_text = (
-            "🧠 <b>Sohbet Komutları:<b>\n"
+            "🧠 **Sohbet Komutları:**\n"
             "• /ai <mesaj> - Yapay zeka ile sohbet et.\n"
             "• /model <model_adı> - Sohbet kişiliğini değiştir.\n"
             "  (Örn: /model Serena)\n\n"
-            "🎨 <b>Görsel Komutları:<b>\n"
+            "🎨 **Görsel Komutları:**\n"
             "• /draw <açıklama> - Yapay zeka ile resim çiz.\n\n"
-            "⚙️ <b>Yönetim Komutları:<b>\n"
+            "⚙️ **Yönetim Komutları:**\n"
             "• /reborn - Sohbet geçmişini sıfırla.\n"
             "• /status - Botun güncel durumunu gösterir.\n\n"
             "Kullanılabilir modelleri görmek için: /model yazabilirsin."
         )
-        await message.reply(help_text, parse_mode=ParseMode.HTML)
+        await message.reply(help_text, parse_mode=ParseMode.MARKDOWN)
 
 # ===== /status =====
 
@@ -205,12 +205,12 @@ if dp:
 
         status_message = (
             "📊 **Bot Durum Bilgileri**\n\n"
-            f"<b>Bot Açık Kalma Süresi:<b> {days}g {hours}s {minutes}d {seconds}sn\n"
+            f"Bot Açık Kalma Süresi: {days}g {hours}s {minutes}d {seconds}sn\n"
             f"  • Kullanılan Anahtar: {current_api_key_name}\n"
             f"  • Bu Anahtar ile Yapılan İstek: {current_api_usage}\n"
         )
 
-        await message.reply(status_message, parse_mode=ParseMode.HTML)
+        await message.reply(status_message, parse_mode=ParseMode.MARKDOWN)
 
     # ===== /reborn =====
     @dp.message(Command("reborn"))
@@ -443,6 +443,7 @@ if __name__ == "__main__":
         dp.run_polling(bot)
     else:
         print("❌ Bot başlatılamadı. Lütfen gerekli ortam değişkenlerini kontrol edin.")
+
 
 
 
